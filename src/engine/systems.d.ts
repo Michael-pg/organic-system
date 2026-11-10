@@ -1,0 +1,13 @@
+export const W: number, H: number;
+export const SYSTEMS: any[];
+export function setRng(seed: number): void;
+export function setGlyph(mask: Uint8Array): void;
+export function vectorField(sys: any, state: any, p: any, w: number, h: number, k: number): { f: Float32Array; age: Float32Array; contrast: number };
+export function blur(f: Float32Array, w: number, h: number, sigma: number): Float32Array;
+export function upBilinear(s: Float32Array, sw: number, sh: number, dw: number, dh: number): Float32Array;
+export function clamp(v: number, a: number, b: number): number;
+export function targetFor(sys: number, p: any, amount: number): number;
+export function progressFor(sys: number, s: any, steps: number): number;
+export function defaults(sys: number): Record<string, number | string>;
+export function makeSkel(w: number, h: number, k: number): OffscreenCanvasRenderingContext2D;
+export function toField(x: OffscreenCanvasRenderingContext2D, w: number, h: number): Float32Array;

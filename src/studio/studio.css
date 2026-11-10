@@ -1,0 +1,14 @@
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; }
+body { background: #0b0b0b; color: #e8e8e3; font: 12px/1.4 ui-monospace, "SF Mono", Menlo, monospace; overflow: hidden; }
+
+.stage { position: fixed; inset: 0 0 44px 0; }
+.stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.error { position: absolute; left: 16px; top: 16px; margin: 0; max-width: 420px; padding: 10px 12px; background: #0b0b0b; border: 1px solid #e3fd52; }
+
+.bar { position: fixed; left: 0; right: 0; bottom: 0; height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #0b0b0b; border-top: 1px solid #2a2a28; }
+.bar button { width: 64px; padding: 6px 8px; background: #151515; color: inherit; border: 1px solid #2a2a28; font: inherit; cursor: pointer; }
+.bar button:hover { border-color: #e8e8e3; }
+.bar input[type=range] { flex: 0 1 320px; min-width: 80px; accent-color: #e8e8e3; }
+.bar span { color: #7d7d78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:focus-visible { outline: 2px solid #95bbec; outline-offset: 2px; }
