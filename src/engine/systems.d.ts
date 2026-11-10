@@ -1,4 +1,5 @@
-export const W: number, H: number;
+export let W: number, H: number;
+export function setGrid(w: number, h: number): void;
 export const SYSTEMS: any[];
 export function setRng(seed: number): void;
 export function setGlyph(mask: Uint8Array): void;

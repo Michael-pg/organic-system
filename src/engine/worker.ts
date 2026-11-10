@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 // Bake worker: runs a growth simulation and turns the result into textures the player can animate.
 //   R = density field   G = age (when each pixel grew, 0..1)   B = wide blur of the field (contours, hover swell)
-import { W, H, SYSTEMS, setRng, setGlyph, vectorField, makeSkel, toField, blur, upBilinear, clamp, targetFor, progressFor } from './systems.js';
+import { W, H, SYSTEMS, setGrid, setRng, setGlyph, vectorField, makeSkel, toField, blur, upBilinear, clamp, targetFor, progressFor } from './systems.js';
 import type { BakeMessage, BakeRequest, CatalogMessage } from './types';
 
 const VECTOR_SCALE = 4; // vector systems rasterise at 4x the simulation grid
@@ -132,6 +132,7 @@ async function pump() {
     while (queued) {
       const job: BakeRequest = queued; queued = null;
       const sys = SYSTEMS[job.sys], p: any = { ...job.params };
+      setGrid(job.grid[0], job.grid[1]); setGlyph(job.glyph);
       setRng(job.seed * 31 + job.sys * 7 + 1);
       const start = performance.now(), state = sys.init(p), target = targetFor(job.sys, p, job.amount);
       let steps = 0, active = true, cancelled = false, stalled = 0;
@@ -148,7 +149,7 @@ async function pump() {
       }
       if (cancelled) continue;
       const { segments, ...tex } = bakeTextures(sys, state, p), flip = sys.recency ? bakeFlipbook(sys, state, p) : undefined;
-      const message: BakeMessage = { type: 'bake', revision: job.revision, sys: job.sys, seed: job.seed, amount: job.amount, elapsed: performance.now() - start, bake: { ...tex, flip }, segments };
+      const message: BakeMessage = { type: 'bake', revision: job.revision, sys: job.sys, seed: job.seed, amount: job.amount, elapsed: performance.now() - start, grid: job.grid, bake: { ...tex, flip }, segments };
       postMessage(message, flip ? [tex.pixels.buffer, flip.data.buffer] : [tex.pixels.buffer]);
     }
   } catch (error) {
@@ -158,7 +159,6 @@ async function pump() {
 
 onmessage = ({ data }) => {
   if (data.type === 'init') {
-    setGlyph(data.glyph);
     const message: CatalogMessage = { type: 'catalog', systems: SYSTEMS.map((s: any) => ({ name: s.name, vector: !!s.vector, living: !!s.recency, params: s.params.map(({ fmt, ...q }: any) => q) })) };
     postMessage(message);
   }

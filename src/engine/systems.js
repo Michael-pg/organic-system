@@ -2,7 +2,8 @@
 // Growth simulations, lifted verbatim from reference/culture-growth-editor.html.
 // Only the module wiring at the bottom is new. Runs in a worker (needs OffscreenCanvas).
 // ======================= core =======================
-const W = 192, H = 144, TAU = Math.PI * 2, CX = W / 2 | 0, CY = H / 2 | 0;
+let W = 192, H = 144, CX = W / 2 | 0, CY = H / 2 | 0; // grid size; the studio sets it to the shape of the screen
+const TAU = Math.PI * 2;
 const rng = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s);
   t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const hash = (a, b, c) => { let h = Math.imul(a ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(b + 0x632be5ab, 0xc2b2ae35) ^ Math.imul(c + 0x27d4eb2f, 0x165667b1);
@@ -321,6 +322,7 @@ function progressFor(sysIndex,s,steps){return sysIndex===1?s.stuck:sysIndex===5?
 function defaults(index){return Object.fromEntries(SYSTEMS[index].params.map(q=>[q.key,q.def]))}
 
 // ======================= module wiring =======================
+export const setGrid = (w, h) => { W = w; H = h; CX = W / 2 | 0; CY = H / 2 | 0; };
 export const setRng = seed => { r = rng(seed); };
 export const setGlyph = mask => { GLYPH = mask; };
 export { W, H, SYSTEMS, vectorField, makeSkel, toField, blur, upBilinear, clamp, targetFor, progressFor, defaults };

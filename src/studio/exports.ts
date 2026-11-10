@@ -55,7 +55,7 @@ function elementTag(recipe: Recipe, src: string, flipSrc?: string) {
 export function snippet(job: ExportJob) {
   const script = new URL(PLAYER_URL, location.href).href;
   return `<!-- Organic loop: put ${job.name}.png${job.bake.flip ? ` and ${job.name}-frames.png` : ''} next to this page (or change the paths).
-     Host organic-loop.js yourself for production. Size it with CSS; it keeps a 4:3 shape by default. -->
+     Host organic-loop.js yourself for production. Size it with CSS; by default it keeps the shape it was grown at. -->
 <script type="module" src="${script}"></script>
 ${elementTag(recipeFor(job.params, job.bake, job.previewWidth), `${job.name}.png`, job.bake.flip && `${job.name}-frames.png`)}`;
 }
@@ -185,9 +185,10 @@ export function animatedSvg(job: ExportJob) {
     for (const [w, d] of widths) body += `<path stroke-width="${w}" d="${d.join('')}"/>`;
     body += '</g>';
   });
+  const gw = job.bake.width / 4, gh = job.bake.height / 4; // vector bakes are 4x the growth grid
   const meta = JSON.stringify({ name: job.name, loop: p.loop, duration: p.duration }).replace(/</g, '');
-  return new Blob([`<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1440" viewBox="0 0 192 144"><metadata>${meta}</metadata><style>${css}</style>`
-    + (p.transparent ? '' : `<rect width="192" height="144" fill="${p.ground}"/>`)
+  return new Blob([`<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="${Math.round(1920 * gh / gw)}" viewBox="0 0 ${gw} ${gh}"><metadata>${meta}</metadata><style>${css}</style>`
+    + (p.transparent ? '' : `<rect width="${gw}" height="${gh}" fill="${p.ground}"/>`)
     + `<g stroke="${p.figure}" fill="none" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`], { type: 'image/svg+xml' });
 }
 

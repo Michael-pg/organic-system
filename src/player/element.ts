@@ -37,7 +37,7 @@ export class OrganicLoopElement extends HTMLElement {
   connectedCallback() {
     if (this.player) return;
     const root = this.shadowRoot ?? this.attachShadow({ mode: 'open' });
-    root.innerHTML = '<style>:host{display:block;aspect-ratio:4/3;overflow:hidden}canvas{display:block;width:100%;height:100%;touch-action:pan-y}</style><canvas part="canvas"></canvas>';
+    root.innerHTML = '<style>:host{display:block;aspect-ratio:var(--shape,4/3);overflow:hidden}canvas{display:block;width:100%;height:100%;touch-action:pan-y}</style><canvas part="canvas"></canvas>';
     try { this.player = new OrganicPlayer(root.querySelector('canvas')!, { autoplay: false }); }
     catch (error) { console.warn(error); return; }
     this.io = new IntersectionObserver(entries => { this.visible = entries[entries.length - 1].isIntersecting; this.sync(); });
@@ -88,6 +88,8 @@ export class OrganicLoopElement extends HTMLElement {
           for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++) data[(i * f.height + y) * f.width + x] = atlas.data[((oy + y) * atlas.width + ox + x) * 4]; }
         bake.flip = { count: f.count, width: f.width, height: f.height, data };
       }
+      // take the shape the organism was grown at, unless the page sizes the element itself
+      this.shadowRoot!.querySelector('style')!.textContent += `:host{--shape:${main.width}/${main.height}}`;
       this.player.setBake(bake); this.sync();
     } catch (error) { console.warn(error); }
   }

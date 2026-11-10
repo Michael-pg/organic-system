@@ -47,7 +47,7 @@ const LOOK = {
   accent: D.accent,
   accentByAge: [D.accentMix, 0, 1, .01],
   transparent: false,
-  fit: select(['contain', 'cover'], D.fit),
+  fit: select(['cover', 'contain'], 'cover'),
   lines: { _collapsed: true, levels: [D.levels, 1, 16, 1], flow: [D.flow, -4, 4, 1], width: [D.lineWidth, .5, 8, .5] },
 } satisfies DialConfig;
 
@@ -89,18 +89,24 @@ const panelConfig = (sys: number): DialConfig => ({
 type Values = ResolvedValues<{ organism: typeof ORGANISM; loop: typeof LOOP; look: typeof LOOK; environment: typeof ENVIRONMENT; hover: typeof HOVER; export: typeof EXPORT }>
   & Record<string, Record<string, number | string> | undefined>;
 
-function glyphMask() {
-  const c = document.createElement('canvas'); c.width = 192; c.height = 144; const x = c.getContext('2d')!;
-  x.fillStyle = '#000'; x.fillRect(0, 0, 192, 144); x.fillStyle = '#fff'; x.font = 'bold 150px "Helvetica Neue", Helvetica, Arial, sans-serif';
-  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('S', 96, 78);
-  const d = x.getImageData(0, 0, 192, 144).data, mask = new Uint8Array(192 * 144);
+function glyphMask(w: number, h: number) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true })!, size = Math.min(w * .78, h * 1.04);
+  x.fillStyle = '#000'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = `bold ${size}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('S', w / 2, h / 2 + size * .04);
+  const d = x.getImageData(0, 0, w, h).data, mask = new Uint8Array(w * h);
   for (let i = 0; i < mask.length; i++) mask[i] = d[i * 4] > 128 ? 1 : 0; return mask;
+}
+
+/** A growth grid with the same number of cells as the original 192 x 144, reshaped to fill the stage. */
+function gridFor(width: number, height: number): [number, number] {
+  const aspect = Math.min(2.6, Math.max(.4, width / Math.max(1, height))), h = Math.round(Math.sqrt(192 * 144 / aspect) / 2) * 2;
+  return [Math.round(h * aspect / 2) * 2, h];
 }
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null), scrubRef = useRef<HTMLInputElement>(null);
   const playerRef = useRef<OrganicPlayer | null>(null), workerRef = useRef<Worker | null>(null), revision = useRef(0);
-  const [sys, setSys] = useState(DEFAULT_SYSTEM);
+  const [sys, setSys] = useState(DEFAULT_SYSTEM), [grid, setGrid] = useState<[number, number] | null>(null);
   const [status, setStatus] = useState('Growing…'), [playing, setPlaying] = useState(true), [error, setError] = useState('');
   const grown = useRef<{ bake: Bake; segments?: Float32Array; name: string } | null>(null), busy = useRef(false), runExport = useRef<(path: string) => void>(() => {});
 
@@ -129,19 +135,23 @@ export default function App() {
       if (data.revision === revision.current) setStatus(`${CATALOG[data.sys].name} · growth ${data.amount}% · seed ${data.seed} · ${Math.round(data.elapsed)} ms`);
     };
     worker.onerror = e => setError(e.message || 'The growth worker failed to start.');
-    const glyph = glyphMask(); worker.postMessage({ type: 'init', glyph }, [glyph.buffer]);
+    worker.postMessage({ type: 'init' });
     workerRef.current = worker;
-    return () => { worker.terminate(); player.destroy(); playerRef.current = null; workerRef.current = null; };
+    // grow at the shape of the stage, and re-grow once a resize settles
+    let timer = 0; const stage = canvasRef.current!;
+    const measure = () => { const g = gridFor(stage.clientWidth, stage.clientHeight); setGrid(old => old && old[0] === g[0] && old[1] === g[1] ? old : g); };
+    const sizes = new ResizeObserver(() => { clearTimeout(timer); timer = window.setTimeout(measure, 250); }); sizes.observe(stage); measure();
+    return () => { sizes.disconnect(); clearTimeout(timer); worker.terminate(); player.destroy(); playerRef.current = null; workerRef.current = null; };
   }, []);
 
   // shape changes re-grow the organism in the background; the player crossfades to the result
   const shape = chosen === sys ? v[shapeKey(sys)] : undefined, shapeJson = shape ? JSON.stringify(shape) : '';
   useEffect(() => {
-    if (!shapeJson || !workerRef.current) return;
+    if (!shapeJson || !workerRef.current || !grid) return;
     setStatus(`${CATALOG[sys].name} · growing…`);
     const defaults = Object.fromEntries(CATALOG[sys].params.map(q => [q.key, q.def]));
-    workerRef.current.postMessage({ type: 'bake', revision: ++revision.current, sys, seed: o.seed, amount: o.growth, params: { ...defaults, ...JSON.parse(shapeJson) } });
-  }, [sys, o.seed, o.growth, shapeJson]);
+    workerRef.current.postMessage({ type: 'bake', revision: ++revision.current, sys, seed: o.seed, amount: o.growth, params: { ...defaults, ...JSON.parse(shapeJson) }, grid, glyph: glyphMask(grid[0], grid[1]) });
+  }, [sys, o.seed, o.growth, shapeJson, grid]);
 
   // look and motion are just numbers handed to the shader, so they apply on the next frame
   const paletteRef = useRef(l.palette);
