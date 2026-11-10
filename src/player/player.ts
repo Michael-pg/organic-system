@@ -50,7 +50,7 @@ export const DEFAULTS: PlayerParams = {
   loop: 'grow', duration: 8, growShare: .55, holdShare: .15, recede: 'decay', ease: [.45, 0, .2, 1], soft: .04,
   bands: 2, laps: 1, bandWidth: .35, base: .15,
   source: 'form', pattern: 'bayer4', cell: 3, contrast: 1.5, levels: 6, flow: 1, lineWidth: 1.5,
-  figure: '#efe9d6', ground: '#16241c', accent: '#ff8a4c', accentMix: .7, transparent: false, seed: 1, fit: 'contain', refWidth: 0,
+  figure: '#d4ff3d', ground: '#1c232e', accent: '#3de8ff', accentMix: .85, transparent: false, seed: 1, fit: 'contain', refWidth: 0,
   windX: 1, windY: 0, wind: 0, gust: 2, sway: .01, breath: .25, noiseScale: 5, tempo: 2,
   hover: 'bloom', hoverRadius: .12, hoverStrength: 1, hoverLinger: 1.2,
 };

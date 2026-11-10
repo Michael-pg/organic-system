@@ -11,6 +11,7 @@ const DEFAULT_SYSTEM = 4; // Hyphae
 const HIDDEN: Record<number, string[]> = { 1: ['batch'], 5: ['perStep'] };
 // figure, ground, accent
 const PALETTES: Record<string, [string, string, string]> = {
+  'slate / neon': ['#d4ff3d', '#1c232e', '#3de8ff'], 'slate / hot pink': ['#ff4fd8', '#1c232e', '#ffd23d'], 'slate / ultraviolet': ['#9d7bff', '#1c232e', '#3dffc5'],
   'moss / bone': ['#efe9d6', '#16241c', '#ff8a4c'], 'plum / spore': ['#f4c7d8', '#2a1730', '#ffd166'], 'slate / lichen': ['#c9f27b', '#1d2433', '#7ad7f0'],
   'cream / clay': ['#b4482f', '#f3ead9', '#2f4b3a'], 'paper / ink': ['#1e1e1e', '#f5f2ea', '#d6452b'], 'night / white': ['#ffffff', '#000000', '#95bbec'],
   'olive / blue': ['#95bbec', '#6c5f17', '#e3fd52'],
@@ -41,7 +42,7 @@ const LOOK = {
   pattern: select(PATTERNS, D.pattern),
   cell: [D.cell, 1, 16, 1],
   contrast: [D.contrast, .5, 3, .05],
-  palette: select(Object.keys(PALETTES), 'moss / bone'),
+  palette: select(Object.keys(PALETTES), 'slate / neon'),
   figure: D.figure,
   ground: D.ground,
   accent: D.accent,
@@ -157,7 +158,7 @@ export default function App() {
   const paletteRef = useRef(l.palette);
   useEffect(() => {
     if (paletteRef.current === l.palette) return; paletteRef.current = l.palette;
-    const [figure, ground, accent] = PALETTES[l.palette] ?? PALETTES['moss / bone']; dial.setValues({ look: { figure, ground, accent } } as never);
+    const [figure, ground, accent] = PALETTES[l.palette] ?? PALETTES['slate / neon']; dial.setValues({ look: { figure, ground, accent } } as never);
   }, [l.palette]);
 
   const curve = loop.curve as { ease?: [number, number, number, number] };
