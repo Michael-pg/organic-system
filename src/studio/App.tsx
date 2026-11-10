@@ -104,9 +104,48 @@ function gridFor(width: number, height: number): [number, number] {
   return [Math.round(h * aspect / 2) * 2, h];
 }
 
+// ?card renders a clean, branded frame with no controls; it is what the link-preview image is captured from.
+const CARD = new URLSearchParams(location.search).has('card');
+const SEEN = 'organic-system:intro-seen';
+const seenIntro = () => { try { return localStorage.getItem(SEEN) === '1'; } catch { return false; } };
+
+const Mark = () => (
+  <svg className="mark" viewBox="0 0 10 10" shapeRendering="crispEdges" aria-hidden="true">
+    <path fill="#d4ff3d" d="M3 2h4v1h1v1h1v2H1V4h1V3h1z" /><path fill="#3de8ff" d="M4 3h1v1H4zM6 4h1v1H6zM3 5h1v1H3z" /><path fill="#eef3ff" d="M4 6h2v2h1v1H3V8h1z" />
+  </svg>
+);
+
+function Intro({ onClose }: { onClose: () => void }) {
+  const start = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    start.current?.focus();
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
+  }, []);
+  return (
+    <div className="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+      <div className="intro-card">
+        <h1 id="intro-title"><Mark /> Organic System</h1>
+        <p className="lede">Grow living patterns, loop them, and put them anywhere.</p>
+        <p>Each form here is grown by a small simulation of something real: fungal threads, branching roots, cracking mud, slime mould. You shape how it grows, then decide how it moves and how it looks.</p>
+        <ol>
+          <li><b>Grow</b> Pick a system and a seed, then adjust its shape.</li>
+          <li><b>Loop</b> Set how it grows, holds and recedes, and how it reacts to wind and your cursor.</li>
+          <li><b>Style</b> Choose colours and a pattern, from chunky pixels to smooth lines.</li>
+          <li><b>Export</b> Take it as an embed for your site, an MP4, a GIF, a PNG or an SVG.</li>
+        </ol>
+        <p className="hint">Everything is in the panel on the right. Move your cursor over the form to disturb it.</p>
+        <button ref={start} onClick={onClose}>Start growing</button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null), scrubRef = useRef<HTMLInputElement>(null);
   const playerRef = useRef<OrganicPlayer | null>(null), workerRef = useRef<Worker | null>(null), revision = useRef(0);
+  const [intro, setIntro] = useState(() => !CARD && !seenIntro());
+  const closeIntro = () => { try { localStorage.setItem(SEEN, '1'); } catch { /* private mode */ } setIntro(false); };
   const [sys, setSys] = useState(DEFAULT_SYSTEM), [grid, setGrid] = useState<[number, number] | null>(null);
   const [status, setStatus] = useState('Growing…'), [playing, setPlaying] = useState(true), [error, setError] = useState('');
   const grown = useRef<{ bake: Bake; segments?: Float32Array; name: string } | null>(null), busy = useRef(false), runExport = useRef<(path: string) => void>(() => {});
@@ -132,6 +171,7 @@ export default function App() {
       if (data.type === 'error') setError(data.message);
       if (data.type !== 'bake') return;
       player.setBake(data.bake);
+      if (CARD) { player.playing = false; player.phase = .5; document.documentElement.dataset.ready = '1'; }
       grown.current = { bake: data.bake, segments: data.segments, name: `${CATALOG[data.sys].name.toLowerCase().replace(/[^a-z]+/g, '-')}-seed${data.seed}` };
       if (data.revision === revision.current) setStatus(`${CATALOG[data.sys].name} · growth ${data.amount}% · seed ${data.seed} · ${Math.round(data.elapsed)} ms`);
     };
@@ -199,17 +239,23 @@ export default function App() {
 
   return (
     <>
-      <main className="stage" style={{ background: backdrop }}>
+      <main className={CARD ? 'stage card' : 'stage'} style={{ background: backdrop }}>
         <canvas ref={canvasRef} />
         {error && <p className="error" role="alert">{error}</p>}
+        {CARD && <div className="card-title"><Mark /><div><strong>Organic System</strong><span>Grow looping organic animations</span></div></div>}
       </main>
-      <footer className="bar">
+      {!CARD && <header className="brand"><Mark /><span>Organic System</span><button onClick={() => setIntro(true)}>About</button>
+        <a href="https://github.com/Michael-pg/organic-system" target="_blank" rel="noopener noreferrer" aria-label="View the source on GitHub" title="View the source on GitHub">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" /></svg>
+        </a></header>}
+      {!CARD && <footer className="bar">
         <button onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{playing ? 'Pause' : 'Play'}</button>
         <input ref={scrubRef} type="range" min="0" max="1" step="0.001" defaultValue="0" aria-label="Loop position"
           onInput={e => { const p = playerRef.current; if (p) p.phase = Number(e.currentTarget.value); }} />
         <span role="status" aria-live="polite">{status}</span>
-      </footer>
-      <DialRoot position="top-right" theme="dark" productionEnabled />
+      </footer>}
+      {intro && <Intro onClose={closeIntro} />}
+      {!CARD && <DialRoot position="top-right" theme="dark" productionEnabled />}
     </>
   );
 }

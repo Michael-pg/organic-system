@@ -12,3 +12,30 @@ body { background: #0b0b0b; color: #e8e8e3; font: 12px/1.4 ui-monospace, "SF Mon
 .bar input[type=range] { flex: 0 1 320px; min-width: 80px; accent-color: #e8e8e3; }
 .bar span { color: #7d7d78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :focus-visible { outline: 2px solid #95bbec; outline-offset: 2px; }
+
+.mark { width: 18px; height: 18px; flex: none; }
+.brand { position: fixed; left: 16px; top: 16px; display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; background: #12171fcc; border: 1px solid #2c3644; border-radius: 8px; backdrop-filter: blur(6px); letter-spacing: .04em; }
+.brand button { margin-left: 4px; padding: 2px 8px; background: none; color: #9aa7b8; border: 1px solid #2c3644; border-radius: 5px; font: inherit; cursor: pointer; }
+.brand button:hover { color: #d4ff3d; border-color: #d4ff3d; }
+
+.intro { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; padding: 16px; background: #0b0e1366; overflow: auto; }
+.intro-card { width: min(440px, 100%); padding: 24px; background: #12171f; border: 1px solid #2c3644; border-radius: 12px; font-size: 13px; line-height: 1.55; color: #c5cedb; box-shadow: 0 24px 80px #000a; }
+.intro-card h1 { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; font-size: 18px; font-weight: 600; color: #eef3ff; letter-spacing: .02em; }
+.intro-card h1 .mark { width: 28px; height: 28px; }
+.intro-card p { margin: 10px 0; }
+.intro-card .lede { color: #d4ff3d; }
+.intro-card ol { margin: 14px 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.intro-card li { display: grid; grid-template-columns: 58px 1fr; gap: 8px; }
+.intro-card li b { color: #3de8ff; font-weight: 500; }
+.intro-card .hint { color: #7f8b9c; }
+.intro-card button { margin-top: 8px; width: 100%; padding: 10px 12px; background: #d4ff3d; color: #12171f; border: 0; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+.intro-card button:hover { background: #e3ff7a; }
+
+.stage.card { inset: 0; }
+.card-title { position: absolute; left: 56px; bottom: 52px; display: flex; align-items: center; gap: 22px; padding: 22px 30px 22px 24px; background: #12171fee; border: 2px solid #2c3644; border-radius: 18px; color: #eef3ff; }
+.card-title .mark { width: 76px; height: 76px; }
+.card-title strong { display: block; font-size: 46px; line-height: 1.1; font-weight: 600; letter-spacing: .01em; }
+.card-title span { display: block; margin-top: 6px; font-size: 22px; color: #d4ff3d; }
+.brand a { display: grid; place-items: center; width: 24px; height: 24px; color: #9aa7b8; border-radius: 5px; }
+.brand a:hover { color: #d4ff3d; }
+.brand a svg { width: 16px; height: 16px; }
